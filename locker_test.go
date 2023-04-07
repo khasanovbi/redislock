@@ -16,14 +16,13 @@ var redisOptions = &redis.Options{
 	Addr: "localhost:6380",
 }
 
-var rdb redis.UniversalClient
-
 type RedisTestSuite struct {
 	suite.Suite
+	client redis.UniversalClient
 }
 
 func (suite *RedisTestSuite) requireFlush() {
-	err := rdb.FlushAll(context.Background()).Err()
+	err := suite.client.FlushAll(context.Background()).Err()
 	suite.Require().NoError(err)
 }
 
@@ -32,7 +31,7 @@ func (suite *RedisTestSuite) SetupSuite() {
 		panic("can't await redis port")
 	}
 
-	rdb = redis.NewClient(redisOptions)
+	suite.client = redis.NewClient(redisOptions)
 }
 
 func (suite *RedisTestSuite) TearDownSuite() {
@@ -44,7 +43,7 @@ func (suite *RedisTestSuite) SetupTest() {
 }
 
 func (suite *RedisTestSuite) TestSuccess() {
-	locker, err := New(rdb, WithTTL(time.Hour), WithRefreshPeriod(time.Millisecond))
+	locker, err := New(suite.client, WithTTL(time.Hour), WithRefreshPeriod(time.Millisecond))
 	suite.Require().NoError(err)
 
 	lock, _, err := locker.Lock(context.Background(), "key")
@@ -56,7 +55,7 @@ func (suite *RedisTestSuite) TestSuccess() {
 
 func (suite *RedisTestSuite) TestAlreadyLocked() {
 	key := "key"
-	locker, err := New(rdb, WithTTL(time.Hour), WithRefreshPeriod(time.Millisecond))
+	locker, err := New(suite.client, WithTTL(time.Hour), WithRefreshPeriod(time.Millisecond))
 	suite.Require().NoError(err)
 
 	_, _, err = locker.Lock(context.Background(), key)
@@ -70,7 +69,7 @@ func (suite *RedisTestSuite) TestAlreadyLocked() {
 func (suite *RedisTestSuite) TestUnlockError() {
 	key := "key"
 
-	locker, err := New(rdb, WithTTL(time.Hour), WithRefreshPeriod(time.Millisecond))
+	locker, err := New(suite.client, WithTTL(time.Hour), WithRefreshPeriod(time.Millisecond))
 	suite.Require().NoError(err)
 
 	// NOTE: Force redislock not to set deadline to context.
@@ -99,7 +98,7 @@ func TestRedisTestSuite(t *testing.T) {
 func TestNew_InvalidOptions(t *testing.T) {
 	t.Parallel()
 
-	_, err := New(rdb, WithTTL(time.Second), WithRefreshPeriod(time.Hour))
+	_, err := New(nil, WithTTL(time.Second), WithRefreshPeriod(time.Hour))
 	require.Error(t, err)
 	require.ErrorIs(t, err, errSmallTTL)
 }
@@ -107,7 +106,7 @@ func TestNew_InvalidOptions(t *testing.T) {
 func TestLocker_Lock_InvalidOptions(t *testing.T) {
 	t.Parallel()
 
-	locker, err := New(rdb)
+	locker, err := New(nil)
 	require.NoError(t, err)
 
 	_, _, err = locker.Lock(context.Background(), "key", WithTTL(time.Second), WithRefreshPeriod(time.Hour))
