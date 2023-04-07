@@ -64,8 +64,10 @@ func (m *Locker) runRefresh(ctx context.Context, l *redislock.Lock, cfg *config,
 
 func (m *Locker) Lock(ctx context.Context, key string, options ...Option) (*Lock, context.Context, error) {
 	cfg := m.config
+
 	if len(options) > 0 {
 		var err error
+
 		cfg, err = makeConfigWithOptions(cfg, options)
 		if err != nil {
 			return nil, nil, err
