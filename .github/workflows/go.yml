@@ -50,7 +50,4 @@ jobs:
         run: docker-compose up -d
 
       - name: Test
-        uses: gwatts/go-coverage-action@v1
-        with:
-          cover-mode: atomic
-          test-args: '["-v", "-race"]'
+        run: go test -race ./...
