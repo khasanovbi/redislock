@@ -97,12 +97,16 @@ func TestRedisTestSuite(t *testing.T) {
 }
 
 func TestNew_InvalidOptions(t *testing.T) {
+	t.Parallel()
+
 	_, err := New(rdb, WithTTL(time.Second), WithRefreshPeriod(time.Hour))
 	require.Error(t, err)
 	require.ErrorIs(t, err, errSmallTTL)
 }
 
 func TestLocker_Lock_InvalidOptions(t *testing.T) {
+	t.Parallel()
+
 	locker, err := New(rdb)
 	require.NoError(t, err)
 

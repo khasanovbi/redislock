@@ -5,7 +5,7 @@ import (
 )
 
 var defaultConfig = &config{
-	ttl:           10 * time.Minute,
+	ttl:           10 * time.Minute, //nolint:gomnd
 	refreshPeriod: time.Minute,
 }
 
