@@ -1,4 +1,4 @@
-module github.com/khasanovbi/rlock
+module github.com/khasanovbi/redislock
 
 go 1.18
 
