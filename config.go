@@ -1,4 +1,4 @@
-package locker
+package redislock
 
 import (
 	"errors"
